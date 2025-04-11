@@ -9,13 +9,18 @@ import (
 )
 
 type Node struct {
-	conn              net.Conn
-	listening_address string
-	parent_connector  Connector
+	Listening_address string
+	Parent_connector  Connector
+}
+
+func NewNode() *Node {
+	return &Node{
+		Listening_address: "",
+	}
 }
 
 type Connector interface {
-	handel_conn(net.Conn)
+	Handel_conn(net.Conn)
 }
 
 func (node *Node) start() error {
@@ -24,7 +29,7 @@ func (node *Node) start() error {
 		return err
 	}
 
-	node.listening_address = l.Addr().String()
+	node.Listening_address = l.Addr().String()
 
 	defer l.Close()
 
@@ -35,6 +40,6 @@ func (node *Node) start() error {
 			continue
 		}
 
-		go node.parent_connector.handel_conn(conn)
+		go node.Parent_connector.Handel_conn(conn)
 	}
 }
