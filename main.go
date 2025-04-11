@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	config.ReadFlags()
+	config.InitConfig()
 }
