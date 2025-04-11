@@ -5,7 +5,7 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/AmruthSD/Decentralized-Distributed-Files/config"
+	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
 type Node struct {

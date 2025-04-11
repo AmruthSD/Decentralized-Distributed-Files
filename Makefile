@@ -1,2 +1,2 @@
-main:
-	go build -o ./bin/main main.go
+node:
+	go build -o ./bin/node node.go
