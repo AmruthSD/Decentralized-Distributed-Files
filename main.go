@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/AmruthSD/Decentralized-Distributed-Files/config"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	config.ReadFlags()
 }
