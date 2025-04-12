@@ -2,13 +2,17 @@ package connection
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/buckets"
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
+
+var NodeIDtoNetConn map[string]string
 
 type Node struct {
 	Listening_address string
@@ -29,6 +33,9 @@ func (node *Node) Start() error {
 	}
 
 	node.Listening_address = l.Addr().String()
+	h := hex.EncodeToString(config.MetaData.NodeID)
+	NodeIDtoNetConn[h] = node.Listening_address
+	Dial_Well_Known()
 
 	defer l.Close()
 
@@ -63,4 +70,20 @@ func (node *Node) Handel_conn(conn net.Conn) {
 		}
 		conn.Write([]byte(msg + "\n"))
 	}
+}
+
+func Dial_Well_Known() {
+	conn, err := net.Dial("tcp", "127.0.0.1:"+strconv.Itoa(int(config.MetaData.WellKnownPort)))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	conn.Write([]byte("SEND_NODE_ID\n"))
+	reader := bufio.NewReader(conn)
+	msg, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Connection closed or error:", err)
+		return
+	}
+	NodeIDtoNetConn[hex.EncodeToString([]byte(msg))] = "127.0.0.1:" + strconv.Itoa(int(config.MetaData.WellKnownPort))
 }

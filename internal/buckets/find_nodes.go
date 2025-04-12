@@ -58,5 +58,5 @@ func (buckets *Buckets) find_node(node_id []byte) [][]byte {
 		nodes = append(nodes, pq.Pop().node_id)
 	}
 
-	return nil
+	return nodes
 }
