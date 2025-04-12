@@ -6,20 +6,23 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/buckets"
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
 type Node struct {
 	Listening_address string
+	Bucket            buckets.Buckets
 }
 
 func NewNode() *Node {
 	return &Node{
 		Listening_address: "",
+		Bucket:            *buckets.NewBuckets(),
 	}
 }
 
-func (node *Node) start() error {
+func (node *Node) Start() error {
 	l, err := net.Listen("tcp", "0.0.0.0:"+strconv.Itoa(int(config.MetaData.Port)))
 	if err != nil {
 		return err
@@ -60,8 +63,4 @@ func (node *Node) Handel_conn(conn net.Conn) {
 		}
 		conn.Write([]byte(msg + "\n"))
 	}
-}
-
-func (node *Node) Handel_discover() {
-
 }

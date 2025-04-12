@@ -10,8 +10,10 @@ import (
 )
 
 type metadata struct {
-	NodeID []byte
-	Port   uint16
+	NodeID        []byte
+	Port          uint16
+	WellKnownPort uint16
+	BucketSize    int
 }
 
 var MetaData metadata
@@ -41,6 +43,8 @@ func InitConfig() {
 
 	MetaData.generate_new_node_id()
 	fmt.Println("NodeID:", hex.EncodeToString(MetaData.NodeID))
+	MetaData.WellKnownPort = 8000
+	MetaData.BucketSize = 20
 }
 
 func (MetaData *metadata) generate_new_node_id() {
