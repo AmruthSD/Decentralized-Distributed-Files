@@ -9,7 +9,6 @@ import (
 )
 
 type metadata struct {
-	Type   int
 	NodeID [32]byte
 	Port   uint16
 }
@@ -17,11 +16,10 @@ type metadata struct {
 var MetaData metadata
 
 func InitConfig() {
-	var type_flag, restart string
+	var restart string
 	var port_num int
-	flag.StringVar(&type_flag, "type", "none", "Type of node either storage/lookup")
 	flag.StringVar(&restart, "restart", "none", "Restarting or completely new")
-	flag.IntVar(&port_num, "port", 12345, "The port to listen to")
+	flag.IntVar(&port_num, "port", 0, "The port to listen to")
 	flag.Parse()
 
 	if restart == "flase" {
@@ -30,18 +28,6 @@ func InitConfig() {
 		return
 	} else if restart != "none" {
 		fmt.Println("Unknown restart flag")
-		os.Exit(1)
-	}
-
-	if type_flag == "storage" {
-		MetaData.Type = 1
-	} else if type_flag == "lookup" {
-		MetaData.Type = 2
-	} else if type_flag == "none" {
-		fmt.Println("No type flag provided")
-		os.Exit(1)
-	} else {
-		fmt.Println("type flag not recognised")
 		os.Exit(1)
 	}
 
