@@ -2,6 +2,7 @@ package config
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -9,7 +10,7 @@ import (
 )
 
 type metadata struct {
-	NodeID [32]byte
+	NodeID []byte
 	Port   uint16
 }
 
@@ -39,6 +40,7 @@ func InitConfig() {
 	}
 
 	MetaData.generate_new_node_id()
+	fmt.Println("NodeID:", hex.EncodeToString(MetaData.NodeID))
 }
 
 func (MetaData *metadata) generate_new_node_id() {
@@ -49,6 +51,6 @@ func (MetaData *metadata) generate_new_node_id() {
 		os.Exit(1)
 	}
 
-	MetaData.NodeID = sha256.Sum256(bytes_random)
-
+	arr := sha256.Sum256(bytes_random)
+	MetaData.NodeID = arr[:]
 }

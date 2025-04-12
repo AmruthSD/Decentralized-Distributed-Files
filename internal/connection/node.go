@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"strconv"
@@ -28,6 +29,8 @@ func (node *Node) start() error {
 
 	defer l.Close()
 
+	node.Handel_discover()
+
 	for {
 		conn, err := l.Accept()
 		if err != nil {
@@ -40,5 +43,25 @@ func (node *Node) start() error {
 }
 
 func (node *Node) Handel_conn(conn net.Conn) {
+	defer conn.Close()
+	reader := bufio.NewReader(conn)
+
+	for {
+		msg, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Connection closed or error:", err)
+			return
+		}
+
+		fmt.Println("Received:", msg)
+		msg = parse(msg)
+		if msg == "STOP" {
+			break
+		}
+		conn.Write([]byte(msg + "\n"))
+	}
+}
+
+func (node *Node) Handel_discover() {
 
 }
