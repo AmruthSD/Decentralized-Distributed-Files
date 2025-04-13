@@ -41,6 +41,8 @@ func (node *Node) Start() error {
 
 	node.Handel_discover()
 
+	go node.Handle_Client()
+
 	fmt.Println("Started to Accpet")
 	for {
 		conn, err := l.Accept()
