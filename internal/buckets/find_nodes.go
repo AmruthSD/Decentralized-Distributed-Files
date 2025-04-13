@@ -43,7 +43,7 @@ func xor_dist(node_id1 []byte, node_id2 []byte) []byte {
 	return new_byte
 }
 
-func (buckets *Buckets) find_node(node_id []byte) [][]byte {
+func (buckets *Buckets) Find_Nodes(node_id []byte) [][]byte {
 
 	nodes := make([][]byte, 0)
 	pq := make(BigIntHeap, 0)
@@ -54,7 +54,7 @@ func (buckets *Buckets) find_node(node_id []byte) [][]byte {
 		}
 	}
 
-	for i := 0; i < config.MetaData.BucketSize; i++ {
+	for i := 0; i < config.MetaData.BucketSize && pq.Len() > 0; i++ {
 		nodes = append(nodes, pq.Pop().node_id)
 	}
 

@@ -7,22 +7,21 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/buckets"
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
-var NodeIDtoNetConn map[string]string
+var NodeIDtoNetConn = map[string]string{}
 
 type Node struct {
-	Listening_address string
-	Bucket            buckets.Buckets
+	Bucket buckets.Buckets
 }
 
 func NewNode() *Node {
 	return &Node{
-		Listening_address: "",
-		Bucket:            *buckets.NewBuckets(),
+		Bucket: *buckets.NewBuckets(),
 	}
 }
 
@@ -31,16 +30,18 @@ func (node *Node) Start() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("Started Listening At:", l.Addr().String())
 
-	node.Listening_address = l.Addr().String()
+	config.MetaData.ListeningAddress = l.Addr().String()
 	h := hex.EncodeToString(config.MetaData.NodeID)
-	NodeIDtoNetConn[h] = node.Listening_address
-	Dial_Well_Known()
+	NodeIDtoNetConn[h] = config.MetaData.ListeningAddress
+	node.Dial_Well_Known()
 
 	defer l.Close()
 
 	node.Handel_discover()
 
+	fmt.Println("Started to Accpet")
 	for {
 		conn, err := l.Accept()
 		if err != nil {
@@ -64,7 +65,7 @@ func (node *Node) Handel_conn(conn net.Conn) {
 		}
 
 		fmt.Println("Received:", msg)
-		msg = parse(msg)
+		msg = node.parse(msg)
 		if msg == "STOP" {
 			break
 		}
@@ -72,18 +73,32 @@ func (node *Node) Handel_conn(conn net.Conn) {
 	}
 }
 
-func Dial_Well_Known() {
+func (node *Node) Dial_Well_Known() {
+	if config.MetaData.WellKnownPort == config.MetaData.Port {
+		return
+	}
 	conn, err := net.Dial("tcp", "127.0.0.1:"+strconv.Itoa(int(config.MetaData.WellKnownPort)))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	conn.Write([]byte("SEND_NODE_ID\n"))
+	conn.Write([]byte(fmt.Sprintf("SEND_NODE_ID %s %s\n", hex.EncodeToString(config.MetaData.NodeID), config.MetaData.ListeningAddress)))
 	reader := bufio.NewReader(conn)
 	msg, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Connection closed or error:", err)
 		return
 	}
-	NodeIDtoNetConn[hex.EncodeToString([]byte(msg))] = "127.0.0.1:" + strconv.Itoa(int(config.MetaData.WellKnownPort))
+	fmt.Println("Received:", msg)
+	parts := strings.Split(msg, " ")
+
+	if len(parts) == 2 {
+		id_decoded, err := hex.DecodeString(parts[0])
+		config.MetaData.WellKnownListeningAddress = parts[1]
+		if err == nil {
+			if node.Bucket.Insert_NodeID(id_decoded) {
+				NodeIDtoNetConn[parts[0]] = parts[1]
+			}
+		}
+	}
 }

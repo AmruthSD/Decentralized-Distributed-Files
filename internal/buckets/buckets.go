@@ -20,9 +20,9 @@ func NewBuckets() *Buckets {
 	}
 }
 
-func (buckets *Buckets) Insert_NodeID(node_id []byte) {
+func (buckets *Buckets) Insert_NodeID(node_id []byte) bool {
 	if len(node_id) != 32 {
-		return
+		return false
 	}
 	own_node_id := config.MetaData.NodeID
 
@@ -39,8 +39,9 @@ func (buckets *Buckets) Insert_NodeID(node_id []byte) {
 
 	if buckets.buckets_lists[bucket_num].Len() < config.MetaData.BucketSize {
 		buckets.buckets_lists[bucket_num].PushBack(node_id)
+		return true
 	} else {
 		// send ping and if not respond remove
+		return false
 	}
-
 }

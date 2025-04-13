@@ -10,10 +10,12 @@ import (
 )
 
 type metadata struct {
-	NodeID        []byte
-	Port          uint16
-	WellKnownPort uint16
-	BucketSize    int
+	NodeID                    []byte
+	Port                      uint16
+	WellKnownPort             uint16
+	BucketSize                int
+	ListeningAddress          string
+	WellKnownListeningAddress string
 }
 
 var MetaData metadata
