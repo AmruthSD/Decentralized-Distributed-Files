@@ -59,8 +59,10 @@ func (node *Node) Handel_conn(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 
+	fmt.Println("New Connection", conn.RemoteAddr().String())
 	for {
 		msg, err := reader.ReadString('\n')
+		msg = strings.TrimSuffix(msg, "\n")
 		if err != nil {
 			fmt.Println("Connection closed or error:", err)
 			return
@@ -87,6 +89,7 @@ func (node *Node) Dial_Well_Known() {
 	conn.Write([]byte(fmt.Sprintf("SEND_NODE_ID %s %s\n", hex.EncodeToString(config.MetaData.NodeID), config.MetaData.ListeningAddress)))
 	reader := bufio.NewReader(conn)
 	msg, err := reader.ReadString('\n')
+	msg = strings.TrimSuffix(msg, "\n")
 	if err != nil {
 		fmt.Println("Connection closed or error:", err)
 		return

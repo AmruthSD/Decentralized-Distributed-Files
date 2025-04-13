@@ -1,6 +1,8 @@
 package buckets
 
-import "github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
+import (
+	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
+)
 
 type heap_node struct {
 	node_id  []byte
@@ -11,7 +13,7 @@ type BigIntHeap []heap_node
 
 func (h BigIntHeap) Len() int { return len(h) }
 func (h BigIntHeap) Less(i, j int) bool {
-	for idx := 32; idx >= 0; idx-- {
+	for idx := 31; idx >= 0; idx-- {
 		if int(h[i].xor_dist[idx]) < int(h[j].xor_dist[idx]) {
 			return true
 		} else if int(h[i].xor_dist[idx]) > int(h[j].xor_dist[idx]) {
@@ -50,13 +52,12 @@ func (buckets *Buckets) Find_Nodes(node_id []byte) [][]byte {
 
 	for idx := 0; idx < 256; idx++ {
 		for e := buckets.buckets_lists[idx].Front(); e != nil; e = e.Next() {
-			pq.Push(heap_node{node_id: node_id, xor_dist: xor_dist(node_id, e.Value.([]byte))})
+			k := e.Value.([]byte)
+			pq.Push(heap_node{node_id: k, xor_dist: xor_dist(node_id, k)})
 		}
 	}
-
 	for i := 0; i < config.MetaData.BucketSize && pq.Len() > 0; i++ {
 		nodes = append(nodes, pq.Pop().node_id)
 	}
-
 	return nodes
 }

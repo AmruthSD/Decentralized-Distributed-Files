@@ -5,7 +5,6 @@ import (
 	"container/list"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -20,23 +19,33 @@ type node_address struct {
 }
 
 func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
+
+	if peer_address == config.MetaData.ListeningAddress {
+		return nil
+	}
 	conn, err := net.Dial("tcp", peer_address)
+
 	if err != nil {
-		log.Fatal(err)
+		// fmt.Println(err)
+		return nil
 	}
 	defer conn.Close()
 
 	conn.Write([]byte(fmt.Sprintf("CLOSEST %s\n", hex.EncodeToString(key))))
 	reader := bufio.NewReader(conn)
 	msg, err := reader.ReadString('\n')
+	msg = strings.TrimSuffix(msg, "\n")
 	if err != nil {
 		fmt.Println("Connection closed or error:", err)
 		return nil
 	}
+	// fmt.Println("msg", msg)
 	ans := make([]node_address, 0)
 	if num, e := strconv.Atoi(msg); e == nil {
 		for i := 0; i < num; i++ {
 			msg, err = reader.ReadString('\n')
+			msg = strings.TrimSuffix(msg, "\n")
+			// fmt.Println("msg", msg)
 			if err != nil {
 				fmt.Println("Connection closed or error:", err)
 				return ans
@@ -63,7 +72,7 @@ func xor_dist(node_id1 []byte, node_id2 []byte) []byte {
 }
 
 func Comp(i []byte, j []byte) bool {
-	for idx := 32; idx >= 0; idx-- {
+	for idx := 31; idx >= 0; idx-- {
 		if int(i[idx]) < int(j[idx]) {
 			return true
 		} else if int(i[idx]) > int(j[idx]) {
@@ -75,23 +84,23 @@ func Comp(i []byte, j []byte) bool {
 
 func (node *Node) get_closest_nodes(key []byte) []node_address {
 	nodes := node.Bucket.Find_Nodes(key)
-
 	closest_list := list.New()
 	for i := 0; i < len(nodes); i++ {
 		closest_list.PushBack(node_address{Node_id: nodes[i], Address: NodeIDtoNetConn[hex.EncodeToString(nodes[i])]})
 	}
 	visited := make(map[string]bool, 0)
+
 	for {
 		dis := make([]byte, 32)
 
-		for i := 0; i < 32; i++ {
-			dis[i] = 1<<8 - 1
-		}
 		var wg sync.WaitGroup
 		new_nodes := map[string]node_address{}
 		f := 0
 		for it := 0; it < config.MetaData.SearchAlpha; it++ {
 			var mi node_address
+			for i := 0; i < 32; i++ {
+				dis[i] = 1<<8 - 1
+			}
 			for e := closest_list.Front(); e != nil; e = e.Next() {
 				k := e.Value.(node_address)
 				if !visited[hex.EncodeToString(k.Node_id)] && Comp(xor_dist(k.Node_id, key), dis) {
@@ -104,20 +113,21 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 			if f != 0 {
 				visited[hex.EncodeToString(mi.Node_id)] = true
 				wg.Add(1)
-				go func() {
-					wg.Done()
+				func(mi node_address) {
+					defer wg.Done()
 					new_grp := node.get_nodes(key, mi.Address)
 					for i := 0; i < len(new_grp); i++ {
 						new_nodes[hex.EncodeToString(new_grp[i].Node_id)] = new_grp[i]
 					}
-				}()
+				}(mi)
+			} else {
+				break
 			}
 		}
 		if f == 0 {
 			break
 		}
 		wg.Wait()
-
 		f = 0
 
 		for _, v := range new_nodes {

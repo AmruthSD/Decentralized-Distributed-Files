@@ -5,18 +5,22 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
-func UploadFile(filePath string) ([]string, error) {
+func HashFile(filePath string) ([]string, error) {
 	// open file
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 
+	filename := filepath.Base(filePath)
 	// make hashes
 	hashes := make([]string, 0)
 	buffer := make([]byte, config.MetaData.ChunkSize)
@@ -37,7 +41,15 @@ func UploadFile(filePath string) ([]string, error) {
 	file.Close()
 
 	// write hashes list to another file
-	outputFile, err := os.Create(filePath + ".hash")
+	dirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/"
+	err = os.MkdirAll(dirPath, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	outputFile, err := os.Create(dirPath + filename + ".hash")
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
