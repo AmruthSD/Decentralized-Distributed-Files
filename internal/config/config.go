@@ -17,6 +17,7 @@ type metadata struct {
 	ListeningAddress          string
 	WellKnownListeningAddress string
 	SearchAlpha               int
+	ChunkSize                 int
 }
 
 var MetaData metadata
@@ -49,6 +50,7 @@ func InitConfig() {
 	MetaData.WellKnownPort = 8000
 	MetaData.BucketSize = 20
 	MetaData.SearchAlpha = 3
+	MetaData.ChunkSize = 4 * 1024 * 1024
 }
 
 func (MetaData *metadata) generate_new_node_id() {
