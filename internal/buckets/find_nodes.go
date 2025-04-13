@@ -11,7 +11,7 @@ type BigIntHeap []heap_node
 
 func (h BigIntHeap) Len() int { return len(h) }
 func (h BigIntHeap) Less(i, j int) bool {
-	for idx := 0; idx < 32; idx++ {
+	for idx := 32; idx >= 0; idx-- {
 		if int(h[i].xor_dist[idx]) < int(h[j].xor_dist[idx]) {
 			return true
 		} else if int(h[i].xor_dist[idx]) > int(h[j].xor_dist[idx]) {

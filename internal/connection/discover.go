@@ -16,7 +16,7 @@ func (node *Node) Handel_discover() {
 			msk := i % 8
 
 			node_id[id] = node_id[id] ^ 1<<msk
-			list_node_id := node.get_closest_nodes(node_id, config.MetaData.WellKnownListeningAddress)
+			list_node_id := node.get_closest_nodes(node_id)
 			node_id[id] = node_id[id] ^ 1<<msk
 
 			for v := range len(list_node_id) {

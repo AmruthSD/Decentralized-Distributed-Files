@@ -2,12 +2,16 @@ package connection
 
 import (
 	"bufio"
+	"container/list"
 	"encoding/hex"
 	"fmt"
 	"log"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
+
+	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
 type node_address struct {
@@ -15,8 +19,7 @@ type node_address struct {
 	Address string
 }
 
-func (node *Node) get_closest_nodes(key []byte, peer_address string) []node_address {
-
+func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 	conn, err := net.Dial("tcp", peer_address)
 	if err != nil {
 		log.Fatal(err)
@@ -49,6 +52,111 @@ func (node *Node) get_closest_nodes(key []byte, peer_address string) []node_addr
 		}
 	}
 	return ans
+}
+
+func xor_dist(node_id1 []byte, node_id2 []byte) []byte {
+	new_byte := make([]byte, 32)
+	for i := 0; i < 32; i++ {
+		new_byte[i] = node_id1[i] ^ node_id2[i]
+	}
+	return new_byte
+}
+
+func Comp(i []byte, j []byte) bool {
+	for idx := 32; idx >= 0; idx-- {
+		if int(i[idx]) < int(j[idx]) {
+			return true
+		} else if int(i[idx]) > int(j[idx]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (node *Node) get_closest_nodes(key []byte) []node_address {
+	nodes := node.Bucket.Find_Nodes(key)
+
+	closest_list := list.New()
+	for i := 0; i < len(nodes); i++ {
+		closest_list.PushBack(node_address{Node_id: nodes[i], Address: NodeIDtoNetConn[hex.EncodeToString(nodes[i])]})
+	}
+	visited := make(map[string]bool, 0)
+	for {
+		dis := make([]byte, 32)
+
+		for i := 0; i < 32; i++ {
+			dis[i] = 1<<8 - 1
+		}
+		var wg sync.WaitGroup
+		new_nodes := map[string]node_address{}
+		f := 0
+		for it := 0; it < config.MetaData.SearchAlpha; it++ {
+			var mi node_address
+			for e := closest_list.Front(); e != nil; e = e.Next() {
+				k := e.Value.(node_address)
+				if !visited[hex.EncodeToString(k.Node_id)] && Comp(xor_dist(k.Node_id, key), dis) {
+					mi = k
+					dis = xor_dist(k.Node_id, key)
+					f = 1
+				}
+			}
+
+			if f != 0 {
+				visited[hex.EncodeToString(mi.Node_id)] = true
+				wg.Add(1)
+				go func() {
+					wg.Done()
+					new_grp := node.get_nodes(key, mi.Address)
+					for i := 0; i < len(new_grp); i++ {
+						new_nodes[hex.EncodeToString(new_grp[i].Node_id)] = new_grp[i]
+					}
+				}()
+			}
+		}
+		if f == 0 {
+			break
+		}
+		wg.Wait()
+
+		f = 0
+
+		for _, v := range new_nodes {
+			for i := 0; i < 32; i++ {
+				dis[i] = 0
+			}
+			var mx node_address
+			mxid := -1
+			for e := closest_list.Front(); e != nil; e = e.Next() {
+				k := e.Value.(node_address)
+				if !Comp(xor_dist(key, k.Node_id), dis) {
+					dis = xor_dist(key, k.Node_id)
+					mx = k
+					mxid = 1
+				}
+			}
+			if mxid == 1 {
+				if Comp(xor_dist(v.Node_id, key), dis) {
+					for e := closest_list.Front(); e != nil; e = e.Next() {
+						k := e.Value.(node_address)
+						if hex.EncodeToString(k.Node_id) == hex.EncodeToString(mx.Node_id) {
+							e.Value = v
+							f = 1
+						}
+					}
+				}
+			}
+		}
+		if f == 0 {
+			break
+		}
+	}
+
+	vec := make([]node_address, 0)
+	for e := closest_list.Front(); e != nil; e = e.Next() {
+		k := e.Value.(node_address)
+		vec = append(vec, k)
+	}
+	return vec
 }
 
 func (node *Node) handel_closest(parts []string) string {
