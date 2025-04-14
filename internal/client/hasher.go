@@ -41,7 +41,7 @@ func HashFile(filePath string) ([]string, error) {
 	file.Close()
 
 	// write hashes list to another file
-	dirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/"
+	dirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/hashed/"
 	err = os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
