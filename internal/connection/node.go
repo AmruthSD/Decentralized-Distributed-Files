@@ -69,7 +69,7 @@ func (node *Node) Handel_conn(conn net.Conn) {
 		}
 
 		fmt.Println("Received:", msg)
-		msg = node.parse(msg)
+		msg = node.parse(msg, conn)
 		if msg == "STOP" {
 			break
 		}

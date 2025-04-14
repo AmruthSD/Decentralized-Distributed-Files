@@ -169,7 +169,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 	return vec
 }
 
-func (node *Node) handel_closest(parts []string) string {
+func (node *Node) handel_closest(parts []string, conn net.Conn) string {
 	// CLOSEST hex_id
 	id, err := hex.DecodeString(parts[1])
 	if err == nil {

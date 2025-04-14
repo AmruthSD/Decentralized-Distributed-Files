@@ -57,10 +57,5 @@ func HashFile(filePath string) ([]string, error) {
 		outputFile.WriteString(hashes[i] + "\n")
 	}
 	outputFile.Close()
-
-	// for each hash get nodes
-
-	// send file chunk
-
 	return hashes, nil
 }
