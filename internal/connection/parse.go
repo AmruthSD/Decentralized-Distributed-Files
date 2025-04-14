@@ -2,6 +2,7 @@ package connection
 
 import (
 	"encoding/hex"
+	"fmt"
 	"net"
 	"strings"
 
@@ -39,10 +40,11 @@ func (node *Node) handle_done(msg []string, conn net.Conn) string {
 
 func (node *Node) handle_node_id(parts []string, conn net.Conn) string {
 	if len(parts) == 3 {
-		node_id := []byte(parts[1])
+		node_id, _ := hex.DecodeString(parts[1])
 		node_listening := parts[2]
 		if node.Bucket.Insert_NodeID(node_id) {
 			NodeIDtoNetConn[hex.EncodeToString(node_id)] = node_listening
+			fmt.Println("Inserting:", parts[1], parts[2])
 		}
 	}
 	return hex.EncodeToString(config.MetaData.NodeID) + " " + config.MetaData.ListeningAddress

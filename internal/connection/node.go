@@ -59,16 +59,16 @@ func (node *Node) Handel_conn(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 
-	fmt.Println("New Connection", conn.RemoteAddr().String())
+	// fmt.Println("New Connection", conn.RemoteAddr().String())
 	for {
 		msg, err := reader.ReadString('\n')
 		msg = strings.TrimSuffix(msg, "\n")
 		if err != nil {
-			fmt.Println("Connection closed or error:", err)
+			// fmt.Println("Connection closed or error:", err)
 			return
 		}
 
-		fmt.Println("Received:", msg)
+		// fmt.Println("Received:", msg)
 		msg = node.parse(msg, conn)
 		if msg == "STOP" {
 			break

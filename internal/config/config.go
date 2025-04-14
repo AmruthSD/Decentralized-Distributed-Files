@@ -51,6 +51,7 @@ func InitConfig() {
 	MetaData.BucketSize = 20
 	MetaData.SearchAlpha = 3
 	MetaData.ChunkSize = 4 * 1024
+	MetaData.WellKnownListeningAddress = "[::]:8000"
 }
 
 func (MetaData *metadata) generate_new_node_id() {

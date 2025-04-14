@@ -84,9 +84,11 @@ func Comp(i []byte, j []byte) bool {
 
 func (node *Node) get_closest_nodes(key []byte) []node_address {
 	nodes := node.Bucket.Find_Nodes(key)
+
 	closest_list := list.New()
 	for i := 0; i < len(nodes); i++ {
 		closest_list.PushBack(node_address{Node_id: nodes[i], Address: NodeIDtoNetConn[hex.EncodeToString(nodes[i])]})
+
 	}
 	visited := make(map[string]bool, 0)
 
@@ -101,6 +103,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 			for i := 0; i < 32; i++ {
 				dis[i] = 1<<8 - 1
 			}
+			// find min dist
 			for e := closest_list.Front(); e != nil; e = e.Next() {
 				k := e.Value.(node_address)
 				if !visited[hex.EncodeToString(k.Node_id)] && Comp(xor_dist(k.Node_id, key), dis) {
@@ -116,8 +119,10 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 				func(mi node_address) {
 					defer wg.Done()
 					new_grp := node.get_nodes(key, mi.Address)
+
 					for i := 0; i < len(new_grp); i++ {
 						new_nodes[hex.EncodeToString(new_grp[i].Node_id)] = new_grp[i]
+						// fmt.Println("received ", hex.EncodeToString(new_grp[i].Node_id), new_grp[i].Address)
 					}
 				}(mi)
 			} else {
@@ -133,6 +138,12 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 		for _, v := range new_nodes {
 			for i := 0; i < 32; i++ {
 				dis[i] = 0
+			}
+			if closest_list.Len() < config.MetaData.BucketSize {
+				if !visited[hex.EncodeToString(v.Node_id)] {
+					closest_list.PushBack(v)
+				}
+				continue
 			}
 			var mx node_address
 			mxid := -1
@@ -164,7 +175,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 	vec := make([]node_address, 0)
 	for e := closest_list.Front(); e != nil; e = e.Next() {
 		k := e.Value.(node_address)
-		vec = append(vec, k)
+		vec = append(vec, node_address{Node_id: k.Node_id, Address: k.Address})
 	}
 	return vec
 }

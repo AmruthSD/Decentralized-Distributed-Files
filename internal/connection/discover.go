@@ -21,7 +21,7 @@ func (node *Node) Handel_discover() {
 
 			for v := range len(list_node_id) {
 				if node.Bucket.Insert_NodeID(list_node_id[v].Node_id) {
-					NodeIDtoNetConn[hex.EncodeToString(list_node_id[v].Node_id)] = string(list_node_id[v].Node_id)
+					NodeIDtoNetConn[hex.EncodeToString(list_node_id[v].Node_id)] = list_node_id[v].Address
 				}
 			}
 		}

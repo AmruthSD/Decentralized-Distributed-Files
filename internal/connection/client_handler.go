@@ -17,7 +17,6 @@ import (
 
 func (node *Node) Handle_Client() {
 	fmt.Println("Client Started")
-
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		if scanner.Scan() {
@@ -53,8 +52,8 @@ func (node *Node) Handle_Client() {
 				var wg sync.WaitGroup
 				for j := 0; j < len(nodes); j++ {
 					wg.Add(1)
-					fmt.Println(nodes[j].Address)
-					go func(hash string) {
+					fmt.Println("sending to", hex.EncodeToString(nodes[j].Node_id), nodes[j].Address)
+					func(hash string) {
 						defer wg.Done()
 						// send file chunk
 						node.send_chunk(buffer[:n], hash, nodes[j].Address)
