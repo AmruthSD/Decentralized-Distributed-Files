@@ -8,11 +8,13 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/buckets"
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
+var MapMutex sync.Mutex
 var NodeIDtoNetConn = map[string]string{}
 
 type Node struct {
@@ -34,13 +36,16 @@ func (node *Node) Start() error {
 
 	config.MetaData.ListeningAddress = l.Addr().String()
 	h := hex.EncodeToString(config.MetaData.NodeID)
+	MapMutex.Lock()
 	NodeIDtoNetConn[h] = config.MetaData.ListeningAddress
+	MapMutex.Unlock()
 	node.Dial_Well_Known()
 
 	defer l.Close()
 
 	node.Handel_discover()
 
+	fmt.Println("Finished Discover")
 	go node.Handle_Client()
 	go node.Handle_persist()
 
@@ -103,7 +108,9 @@ func (node *Node) Dial_Well_Known() {
 		config.MetaData.WellKnownListeningAddress = parts[1]
 		if err == nil {
 			if node.Bucket.Insert_NodeID(id_decoded) {
+				MapMutex.Lock()
 				NodeIDtoNetConn[parts[0]] = parts[1]
+				MapMutex.Unlock()
 			}
 		}
 	}

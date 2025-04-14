@@ -44,7 +44,9 @@ func (node *Node) handle_node_id(parts []string, conn net.Conn) string {
 		node_id, _ := hex.DecodeString(parts[1])
 		node_listening := parts[2]
 		if node.Bucket.Insert_NodeID(node_id) {
+			MapMutex.Lock()
 			NodeIDtoNetConn[hex.EncodeToString(node_id)] = node_listening
+			MapMutex.Unlock()
 			fmt.Println("Inserting:", parts[1], parts[2])
 		}
 	}

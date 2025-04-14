@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 )
 
 type metadata struct {
@@ -49,11 +50,25 @@ func InitConfig() {
 	MetaData.generate_new_node_id()
 	fmt.Println("NodeID:", hex.EncodeToString(MetaData.NodeID))
 	MetaData.WellKnownPort = 8000
-	MetaData.BucketSize = 1
+	MetaData.BucketSize = 20
 	MetaData.SearchAlpha = 3
 	MetaData.ChunkSize = 4 * 1024
 	MetaData.WellKnownListeningAddress = "[::]:8000"
 	MetaData.TimeOut = 1
+
+	dir := "./files/" + strconv.Itoa(int(MetaData.Port)) + "/"
+	err := os.MkdirAll(dir+"downloaded", 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+	}
+	err = os.MkdirAll(dir+"hashed", 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+	}
+	err = os.MkdirAll(dir+"storage", 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+	}
 }
 
 func (MetaData *metadata) generate_new_node_id() {

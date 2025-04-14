@@ -41,7 +41,7 @@ func (buckets *Buckets) Insert_NodeID(node_id []byte) bool {
 	if buckets.buckets_lists[bucket_num].Len() < config.MetaData.BucketSize {
 		for e := buckets.buckets_lists[bucket_num].Front(); e != nil; e = e.Next() {
 			if hex.EncodeToString(e.Value.([]byte)) == hex.EncodeToString(node_id) {
-				return true
+				return false
 			}
 		}
 		buckets.buckets_lists[bucket_num].PushBack(node_id)

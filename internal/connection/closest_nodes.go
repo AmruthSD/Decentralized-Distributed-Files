@@ -30,10 +30,20 @@ func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 		return nil
 	}
 	defer conn.Close()
-
+	buf := make([]byte, config.MetaData.ChunkSize)
+	conn.Write([]byte(fmt.Sprintf("SEND_NODE_ID %s %s\n", hex.EncodeToString(config.MetaData.NodeID), config.MetaData.ListeningAddress)))
+	n, _ := conn.Read(buf)
+	msg := string(buf[:n])
+	msg = strings.TrimSuffix(msg, "\n")
+	parts := strings.Split(msg, " ")
+	if id, e := hex.DecodeString(parts[0]); e == nil && node.Bucket.Insert_NodeID(id) {
+		MapMutex.Lock()
+		NodeIDtoNetConn[parts[0]] = parts[1]
+		MapMutex.Unlock()
+	}
 	conn.Write([]byte(fmt.Sprintf("CLOSEST %s\n", hex.EncodeToString(key))))
 	reader := bufio.NewReader(conn)
-	msg, err := reader.ReadString('\n')
+	msg, err = reader.ReadString('\n')
 	msg = strings.TrimSuffix(msg, "\n")
 	if err != nil {
 		fmt.Println("Connection closed or error:", err)
@@ -54,7 +64,9 @@ func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 			id, e := hex.DecodeString(parts[0])
 			if e == nil {
 				if node.Bucket.Insert_NodeID(id) {
+					MapMutex.Lock()
 					NodeIDtoNetConn[hex.EncodeToString(id)] = parts[1]
+					MapMutex.Unlock()
 				}
 				ans = append(ans, node_address{Node_id: id, Address: parts[1]})
 			}
@@ -96,6 +108,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 		dis := make([]byte, 32)
 
 		var wg sync.WaitGroup
+		var mu_new_grp sync.Mutex
 		new_nodes := map[string]node_address{}
 		f := 0
 		for it := 0; it < config.MetaData.SearchAlpha; it++ {
@@ -121,7 +134,9 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 					new_grp := node.get_nodes(key, mi.Address)
 
 					for i := 0; i < len(new_grp); i++ {
+						mu_new_grp.Lock()
 						new_nodes[hex.EncodeToString(new_grp[i].Node_id)] = new_grp[i]
+						mu_new_grp.Unlock()
 						// fmt.Println("received ", hex.EncodeToString(new_grp[i].Node_id), new_grp[i].Address)
 					}
 				}(mi)
