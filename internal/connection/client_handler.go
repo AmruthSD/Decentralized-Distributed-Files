@@ -53,7 +53,7 @@ func (node *Node) Handle_Client() {
 				for j := 0; j < len(nodes); j++ {
 					wg.Add(1)
 					fmt.Println("sending to", hex.EncodeToString(nodes[j].Node_id), nodes[j].Address)
-					func(hash string) {
+					go func(hash string) {
 						defer wg.Done()
 						// send file chunk
 						node.send_chunk(buffer[:n], hash, nodes[j].Address)

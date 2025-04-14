@@ -116,7 +116,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 			if f != 0 {
 				visited[hex.EncodeToString(mi.Node_id)] = true
 				wg.Add(1)
-				func(mi node_address) {
+				go func(mi node_address) {
 					defer wg.Done()
 					new_grp := node.get_nodes(key, mi.Address)
 
