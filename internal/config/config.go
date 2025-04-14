@@ -18,6 +18,7 @@ type metadata struct {
 	WellKnownListeningAddress string
 	SearchAlpha               int
 	ChunkSize                 int
+	TimeOut                   int
 }
 
 var MetaData metadata
@@ -48,10 +49,11 @@ func InitConfig() {
 	MetaData.generate_new_node_id()
 	fmt.Println("NodeID:", hex.EncodeToString(MetaData.NodeID))
 	MetaData.WellKnownPort = 8000
-	MetaData.BucketSize = 20
+	MetaData.BucketSize = 1
 	MetaData.SearchAlpha = 3
 	MetaData.ChunkSize = 4 * 1024
 	MetaData.WellKnownListeningAddress = "[::]:8000"
+	MetaData.TimeOut = 1
 }
 
 func (MetaData *metadata) generate_new_node_id() {

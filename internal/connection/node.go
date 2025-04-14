@@ -42,6 +42,7 @@ func (node *Node) Start() error {
 	node.Handel_discover()
 
 	go node.Handle_Client()
+	go node.Handle_persist()
 
 	fmt.Println("Started to Accpet")
 	for {

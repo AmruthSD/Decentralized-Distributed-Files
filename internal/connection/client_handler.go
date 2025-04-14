@@ -146,7 +146,7 @@ func (node *Node) DownLoadFile(fileName string) {
 				continue
 			}
 
-			conn.Write([]byte(fmt.Sprintf("DOYOUHAVE %s\n", hashVal)))
+			conn.Write([]byte(fmt.Sprintf("DOYOUHAVE %s DOWNLOAD\n", hashVal)))
 			readbuff := make([]byte, config.MetaData.ChunkSize)
 			n, _ := conn.Read(readbuff)
 			if string(readbuff[:n]) == "YES\n" {
@@ -170,15 +170,30 @@ func (node *Node) DownLoadFile(fileName string) {
 func (node *Node) handle_doyouhave(parts []string, conn net.Conn) string {
 	id := parts[1]
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/storage/"
+	kind := parts[2]
+	if kind == "DOWNLOAD" {
 
-	conn.Write([]byte("YES\n"))
-	buffer := make([]byte, config.MetaData.ChunkSize)
-	file, err := os.Open(dir + id + ".hash")
-	if err != nil {
-		conn.Write([]byte("NO\n"))
+		buffer := make([]byte, config.MetaData.ChunkSize)
+		file, err := os.Open(dir + id)
+		if err != nil {
+			conn.Write([]byte("NO\n"))
+			return "STOP"
+		}
+		conn.Write([]byte("YES\n"))
+		n, _ := file.Read(buffer)
+		conn.Write(buffer[:n])
 		return "STOP"
+	} else if kind == "CHECK" {
+		buffer := make([]byte, config.MetaData.ChunkSize)
+		_, err := os.Open(dir + id)
+		if err == nil {
+			conn.Write([]byte("YES\n"))
+			return "STOP"
+		}
+		conn.Write([]byte("NO\n"))
+		n, _ := conn.Read(buffer)
+		outputFile, _ := os.Create(dir + id)
+		outputFile.Write(buffer[:n])
 	}
-	n, _ := file.Read(buffer)
-	conn.Write(buffer[:n])
 	return "STOP"
 }
