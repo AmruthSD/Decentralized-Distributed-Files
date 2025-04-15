@@ -105,6 +105,7 @@ func (node *Node) send_chunk(buffer []byte, hash string, peer_address string) {
 
 func (node *Node) handel_store(parts []string, conn net.Conn) string {
 	hash := parts[1]
+
 	dirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/storage/"
 	err := os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
@@ -116,6 +117,7 @@ func (node *Node) handel_store(parts []string, conn net.Conn) string {
 	n, _ := conn.Read(buffer)
 	outputFile.Write(buffer[:n])
 	outputFile.Close()
+	UpdateTimeStamp(hash)
 	return "DONE"
 }
 
@@ -194,6 +196,7 @@ func (node *Node) handle_doyouhave(parts []string, conn net.Conn) string {
 		n, _ := conn.Read(buffer)
 		outputFile, _ := os.Create(dir + id)
 		outputFile.Write(buffer[:n])
+		UpdateTimeStamp(id)
 	}
 	return "STOP"
 }

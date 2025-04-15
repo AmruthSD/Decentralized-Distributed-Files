@@ -19,7 +19,8 @@ type metadata struct {
 	WellKnownListeningAddress string
 	SearchAlpha               int
 	ChunkSize                 int
-	TimeOut                   int
+	TimeOutPersist            int
+	TimeOutKeepAlive          int
 }
 
 var MetaData metadata
@@ -54,7 +55,8 @@ func InitConfig() {
 	MetaData.SearchAlpha = 3
 	MetaData.ChunkSize = 4 * 1024
 	MetaData.WellKnownListeningAddress = "[::]:8000"
-	MetaData.TimeOut = 1
+	MetaData.TimeOutPersist = 10
+	MetaData.TimeOutKeepAlive = 20
 
 	dir := "./files/" + strconv.Itoa(int(MetaData.Port)) + "/"
 	err := os.MkdirAll(dir+"downloaded", 0755)
@@ -69,6 +71,17 @@ func InitConfig() {
 	if err != nil {
 		fmt.Println("Error creating directory:", err)
 	}
+	file, err := os.OpenFile(dir+"storage.json", os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
+	if err != nil {
+		if os.IsExist(err) {
+			fmt.Println("Storage Json already exists, not overwriting.")
+			return
+		}
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	file.Write([]byte("{}"))
+	file.Close()
 }
 
 func (MetaData *metadata) generate_new_node_id() {

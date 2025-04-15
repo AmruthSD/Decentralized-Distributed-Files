@@ -18,6 +18,7 @@ func (node *Node) parse(msg string, conn net.Conn) string {
 		"STORE":        node.handel_store,
 		"DONE":         node.handle_done,
 		"DOYOUHAVE":    node.handle_doyouhave,
+		"KEEPALIVE":    node.handle_keepalive,
 	}
 	parts := strings.Split(msg, " ")
 	f, ex := parse_func[parts[0]]

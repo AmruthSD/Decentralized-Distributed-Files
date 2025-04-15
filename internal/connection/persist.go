@@ -48,6 +48,6 @@ func (node *Node) Handle_persist() {
 			}
 		}
 
-		time.Sleep(time.Duration(config.MetaData.TimeOut) * time.Hour)
+		time.Sleep(time.Duration(config.MetaData.TimeOutPersist) * time.Hour)
 	}
 }

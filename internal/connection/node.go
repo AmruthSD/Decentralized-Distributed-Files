@@ -48,6 +48,8 @@ func (node *Node) Start() error {
 	fmt.Println("Finished Discover")
 	go node.Handle_Client()
 	go node.Handle_persist()
+	go node.Handle_KeepAlive()
+	go node.Handle_DeleteExpire()
 
 	fmt.Println("Started to Accpet")
 	for {
