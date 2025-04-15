@@ -32,6 +32,8 @@ func (node *Node) Handle_Client() {
 				node.UploadFile(filePath)
 			} else if action == "DOWNLOAD" {
 				node.DownLoadFile(filePath)
+			} else if action == "DELETE" {
+				node.DeleteFile(filePath)
 			} else {
 				fmt.Println("INVALID INPUT")
 				continue
@@ -199,4 +201,10 @@ func (node *Node) handle_doyouhave(parts []string, conn net.Conn) string {
 		UpdateTimeStamp(id)
 	}
 	return "STOP"
+}
+
+func (node *Node) DeleteFile(fileName string) {
+	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/hashed/"
+	os.Remove(dir + fileName + ".hash")
+	fmt.Println("Deleted File")
 }
