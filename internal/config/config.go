@@ -72,6 +72,10 @@ func InitConfig() {
 	if err != nil {
 		fmt.Println("Error creating directory:", err)
 	}
+	err = os.MkdirAll(dir+"compressed", 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+	}
 	file, err := os.OpenFile(dir+"storage.json", os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 	if err != nil {
 		if os.IsExist(err) {

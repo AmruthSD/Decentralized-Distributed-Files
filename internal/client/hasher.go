@@ -1,6 +1,7 @@
 package client
 
 import (
+	"compress/gzip"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
@@ -20,13 +22,32 @@ func HashFile(filePath string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
-
 	filename := filepath.Base(filePath)
+
+	// make a compressed file
+	compressedDirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/compressed/"
+	compressedFile, _ := os.Create(compressedDirPath + filename)
+	defer compressedFile.Close()
+	gzipWriter, err := gzip.NewWriterLevel(compressedFile, gzip.BestCompression)
+	if err != nil {
+		return nil, err
+	}
+	gzipWriter.Name = ""
+	gzipWriter.ModTime = time.Unix(0, 0)
+
+	_, err = io.Copy(gzipWriter, file)
+	if err != nil {
+		return nil, err
+	}
+
+	gzipWriter.Close()
+
 	// make hashes
+	compressedFile.Seek(0, 0)
 	hashes := make([]string, 0)
 	buffer := make([]byte, config.MetaData.ChunkSize)
 	for {
-		n, err := file.Read(buffer)
+		n, err := compressedFile.Read(buffer)
 		if err != nil && err != io.EOF {
 			return nil, fmt.Errorf("read error: %w", err)
 		}

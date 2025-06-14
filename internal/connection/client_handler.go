@@ -2,6 +2,7 @@ package connection
 
 import (
 	"bufio"
+	"compress/gzip"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -53,7 +54,8 @@ func (node *Node) UploadFile(filePath string) {
 		return
 	}
 
-	file, err := os.Open(filePath)
+	compressedDirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/compressed/"
+	file, err := os.Open(compressedDirPath + filePath)
 	if err != nil {
 		fmt.Println("failed to open file: %w", err)
 		return
@@ -93,6 +95,7 @@ func (node *Node) UploadFile(filePath string) {
 		return
 	}
 	fmt.Println("File sent", filePath)
+	os.Remove(compressedDirPath + filePath)
 }
 
 // makes connection and sends the chunk to store
@@ -137,12 +140,15 @@ func (node *Node) DownLoadFile(fileName string) {
 		return
 	}
 	scanner := bufio.NewScanner(file)
+	compressedDirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/compressed/"
 	outdir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/downloaded/"
 	os.MkdirAll(outdir, os.ModePerm)
 	outputFile, err := os.Create(outdir + fileName)
+	compressedFile, err := os.Create(compressedDirPath + fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	for scanner.Scan() {
 		hashVal := scanner.Text()
 		fmt.Println(hashVal)
@@ -161,7 +167,7 @@ func (node *Node) DownLoadFile(fileName string) {
 			n, _ := conn.Read(readbuff)
 			if string(readbuff[:n]) == "YES\n" {
 				n, _ = conn.Read(readbuff)
-				outputFile.Write(readbuff[:n])
+				compressedFile.Write(readbuff[:n])
 				written = 1
 				break
 			}
@@ -171,6 +177,16 @@ func (node *Node) DownLoadFile(fileName string) {
 			return
 		}
 	}
+
+	compressedFile.Seek(0, 0)
+
+	gzipReader, err := gzip.NewReader(compressedFile)
+	if err != nil {
+		return
+	}
+	defer gzipReader.Close()
+	_, _ = io.Copy(outputFile, gzipReader)
+	os.Remove(compressedDirPath + fileName)
 
 	file.Close()
 	outputFile.Close()
