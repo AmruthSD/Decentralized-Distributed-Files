@@ -27,20 +27,9 @@ var MetaData metadata
 
 // initialize the config metedata
 func InitConfig() {
-	var restart string
 	var port_num int
-	flag.StringVar(&restart, "restart", "none", "Restarting or completely new")
 	flag.IntVar(&port_num, "port", 0, "The port to listen to")
 	flag.Parse()
-
-	if restart == "flase" {
-		// TODO read config from a file and fill metadata
-
-		return
-	} else if restart != "none" {
-		fmt.Println("Unknown restart flag")
-		os.Exit(1)
-	}
 
 	if port_num <= 49151 && port_num >= 1024 {
 		MetaData.Port = uint16(port_num)
@@ -49,7 +38,14 @@ func InitConfig() {
 		os.Exit(1)
 	}
 
-	MetaData.generate_new_node_id()
+	if !restart_node(port_num) {
+		MetaData.generate_new_node_id()
+		dir := "./files/" + strconv.Itoa(int(MetaData.Port)) + "/"
+		configFile := dir + "config.txt"
+		file, _ := os.OpenFile(configFile, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
+		file.Write([]byte(fmt.Sprintf("%s\n%d\n", hex.EncodeToString(MetaData.NodeID), MetaData.Port)))
+		file.Close()
+	}
 	fmt.Println("NodeID:", hex.EncodeToString(MetaData.NodeID))
 	MetaData.WellKnownPort = 8000
 	MetaData.BucketSize = 20
