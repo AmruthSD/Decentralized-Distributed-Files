@@ -83,6 +83,7 @@ func InitConfig() {
 	}
 	file.Write([]byte("{}"))
 	file.Close()
+
 }
 
 func (MetaData *metadata) generate_new_node_id() {

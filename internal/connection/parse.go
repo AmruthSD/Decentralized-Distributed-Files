@@ -2,6 +2,7 @@ package connection
 
 import (
 	"encoding/hex"
+	"log"
 	"net"
 	"strings"
 
@@ -51,7 +52,7 @@ func (node *Node) handle_node_id(parts []string, conn net.Conn) string {
 			MapMutex.Lock()
 			NodeIDtoNetConn[hex.EncodeToString(node_id)] = node_listening
 			MapMutex.Unlock()
-			// fmt.Println("Inserting:", parts[1], parts[2])
+			log.Println("Inserting:", parts[1], parts[2])
 		}
 	}
 	return hex.EncodeToString(config.MetaData.NodeID) + " " + config.MetaData.ListeningAddress

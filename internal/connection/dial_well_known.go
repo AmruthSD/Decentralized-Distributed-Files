@@ -34,10 +34,10 @@ func (node *Node) Dial_Well_Known() {
 	msg, err := reader.ReadString('\n')
 	msg = strings.TrimSuffix(msg, "\n")
 	if err != nil {
-		fmt.Println("Connection closed or error:", err)
+		log.Println("Connection closed or error:", err)
 		return
 	}
-	// fmt.Println("Received:", msg)
+	log.Println("Received:", msg)
 	parts := strings.Split(msg, " ")
 
 	if len(parts) == 2 {

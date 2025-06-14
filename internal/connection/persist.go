@@ -3,6 +3,7 @@ package connection
 import (
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strconv"
@@ -19,7 +20,7 @@ func (node *Node) Handle_persist() {
 	for {
 		entries, err := os.ReadDir(dir)
 		if err != nil {
-			fmt.Println("Error reading directory:", err)
+			log.Println("Error reading directory:", err)
 			continue
 		}
 		for _, v := range entries {

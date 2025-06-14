@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strconv"
@@ -19,14 +20,14 @@ func (node *Node) Handle_KeepAlive() {
 	for {
 		entries, err := os.ReadDir(dir)
 		if err != nil {
-			fmt.Println("Error reading directory:", err)
+			log.Println("Error reading directory:", err)
 			continue
 		}
 		for _, v := range entries {
 			fileName := v.Name()
 			file, err := os.Open(dir + fileName)
 			if err != nil {
-				fmt.Println("Error opening file", err)
+				log.Println("Error opening file", err)
 				continue
 			}
 			scanner := bufio.NewScanner(file)
@@ -53,14 +54,14 @@ func (node *Node) Handle_DeleteExpire() {
 	for {
 		entries, err := os.ReadDir(dir + "storage")
 		if err != nil {
-			fmt.Println("Error reading directory:", err)
+			log.Println("Error reading directory:", err)
 			continue
 		}
 		file, _ := os.Open(dir + "storage.json")
 		data := map[string]time.Time{}
 		decoder := json.NewDecoder(file)
 		if err := decoder.Decode(&data); err != nil {
-			fmt.Println("Error decoding JSON:", err)
+			log.Println("Error decoding JSON:", err)
 			time.Sleep(48 * time.Hour)
 			continue
 		}
@@ -83,7 +84,7 @@ func UpdateTimeStamp(cid string) {
 	data := map[string]time.Time{}
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&data); err != nil {
-		fmt.Println("Error decoding JSON:", err)
+		log.Println("Error decoding JSON:", err)
 		return
 	}
 	file.Close()
@@ -91,14 +92,14 @@ func UpdateTimeStamp(cid string) {
 	expireTime := time.Now().Add(48 * time.Hour)
 	outFile, err := os.OpenFile(dir+"storage.json", os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		fmt.Println("Error ", err)
+		log.Println("Error ", err)
 		return
 	}
 	data[cid] = expireTime
 	encoder := json.NewEncoder(outFile)
 	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(data); err != nil {
-		fmt.Println("Error encoding JSON:", err)
+		log.Println("Error encoding JSON:", err)
 	}
 	outFile.Close()
 }

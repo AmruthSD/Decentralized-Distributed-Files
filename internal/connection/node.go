@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -60,7 +61,7 @@ func (node *Node) Start() error {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Println("Error accepting connection: ", err.Error())
+			log.Println("Error accepting connection: ", err.Error())
 			continue
 		}
 
@@ -73,16 +74,16 @@ func (node *Node) Handel_conn(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 
-	// fmt.Println("New Connection", conn.RemoteAddr().String())
+	log.Println("New Connection", conn.RemoteAddr().String())
 	for {
 		msg, err := reader.ReadString('\n')
 		msg = strings.TrimSuffix(msg, "\n")
 		if err != nil {
-			// fmt.Println("Connection closed or error:", err)
+			log.Println("Connection closed or error:", err)
 			return
 		}
 
-		fmt.Println("Received:", msg)
+		log.Println("Received:", msg)
 		msg = node.parse(msg, conn)
 		if msg == "STOP" {
 			break

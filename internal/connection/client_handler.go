@@ -47,17 +47,17 @@ func (node *Node) Handle_Client() {
 
 // actually makes chunks and sends them to the neighbours
 func (node *Node) UploadFile(filePath string) {
-	fmt.Println("Your file path:", filePath)
+	log.Println("Your file path:", filePath)
 	hashes, err := client.HashFile(filePath)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 
 	compressedDirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/compressed/"
 	file, err := os.Open(compressedDirPath + filePath)
 	if err != nil {
-		fmt.Println("failed to open file: %w", err)
+		log.Println("failed to open file: %w", err)
 		return
 	}
 	f := 0
@@ -65,7 +65,7 @@ func (node *Node) UploadFile(filePath string) {
 	for i := 0; i < len(hashes); i++ {
 		n, err := file.Read(buffer)
 		if err != nil && err != io.EOF {
-			fmt.Println("read error: %w", err)
+			log.Println("read error: %w", err)
 			f = 1
 			break
 		}
@@ -79,7 +79,7 @@ func (node *Node) UploadFile(filePath string) {
 		var wg sync.WaitGroup
 		for j := 0; j < len(nodes); j++ {
 			wg.Add(1)
-			fmt.Println("sending to", hex.EncodeToString(nodes[j].Node_id), nodes[j].Address)
+			log.Println("sending to", hex.EncodeToString(nodes[j].Node_id), nodes[j].Address)
 			go func(hash string) {
 				defer wg.Done()
 				// send file chunk
@@ -88,7 +88,7 @@ func (node *Node) UploadFile(filePath string) {
 		}
 		wg.Wait()
 
-		fmt.Println("Done with hash number", i)
+		log.Println("Done with hash number", i)
 	}
 	file.Close()
 	if f == 1 {
@@ -102,7 +102,7 @@ func (node *Node) UploadFile(filePath string) {
 func (node *Node) send_chunk(buffer []byte, hash string, peer_address string) {
 	conn, err := net.Dial("tcp", peer_address)
 	if err != nil {
-		fmt.Println("Connection err at ", peer_address, err)
+		log.Println("Connection err at ", peer_address, err)
 		return
 	}
 	readbuff := make([]byte, config.MetaData.ChunkSize)
@@ -151,7 +151,7 @@ func (node *Node) DownLoadFile(fileName string) {
 
 	for scanner.Scan() {
 		hashVal := scanner.Text()
-		fmt.Println(hashVal)
+		log.Println(hashVal)
 		cid, _ := hex.DecodeString(hashVal)
 		nodes := node.get_closest_nodes(cid)
 		written := 0
@@ -162,7 +162,7 @@ func (node *Node) DownLoadFile(fileName string) {
 			}
 
 			conn.Write([]byte(fmt.Sprintf("DOYOUHAVE %s DOWNLOAD\n", hashVal)))
-			fmt.Println("Sent do you have download")
+			log.Println("Sent do you have download")
 			readbuff := make([]byte, config.MetaData.ChunkSize)
 			n, _ := conn.Read(readbuff)
 			if string(readbuff[:n]) == "YES\n" {

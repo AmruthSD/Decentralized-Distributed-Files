@@ -5,6 +5,7 @@ import (
 	"container/list"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -27,7 +28,7 @@ func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 	conn, err := net.Dial("tcp", peer_address)
 
 	if err != nil {
-		// fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	defer conn.Close()
@@ -49,18 +50,18 @@ func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 	msg, err = reader.ReadString('\n')
 	msg = strings.TrimSuffix(msg, "\n")
 	if err != nil {
-		fmt.Println("Connection closed or error:", err)
+		log.Println("Connection closed or error:", err)
 		return nil
 	}
-	// fmt.Println("msg", msg)
+	log.Println("msg", msg)
 	ans := make([]node_address, 0)
 	if num, e := strconv.Atoi(msg); e == nil {
 		for i := 0; i < num; i++ {
 			msg, err = reader.ReadString('\n')
 			msg = strings.TrimSuffix(msg, "\n")
-			// fmt.Println("msg", msg)
+			log.Println("msg", msg)
 			if err != nil {
-				fmt.Println("Connection closed or error:", err)
+				log.Println("Connection closed or error:", err)
 				return ans
 			}
 			parts := strings.Split(msg, " ")
@@ -144,7 +145,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 						mu_new_grp.Lock()
 						new_nodes[hex.EncodeToString(new_grp[i].Node_id)] = new_grp[i]
 						mu_new_grp.Unlock()
-						// fmt.Println("received ", hex.EncodeToString(new_grp[i].Node_id), new_grp[i].Address)
+						log.Println("received ", hex.EncodeToString(new_grp[i].Node_id), new_grp[i].Address)
 					}
 				}(mi)
 			} else {
