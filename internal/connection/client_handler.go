@@ -143,7 +143,7 @@ func (node *Node) DownLoadFile(fileName string) {
 	compressedDirPath := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/compressed/"
 	outdir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/downloaded/"
 	os.MkdirAll(outdir, os.ModePerm)
-	outputFile, err := os.Create(outdir + fileName)
+	outputFile, _ := os.Create(outdir + fileName)
 	compressedFile, err := os.Create(compressedDirPath + fileName)
 	if err != nil {
 		log.Fatal(err)
