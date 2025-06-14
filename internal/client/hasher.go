@@ -13,6 +13,7 @@ import (
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
+// makes a file with all the hash values and also returns the hashes
 func HashFile(filePath string) ([]string, error) {
 	// open file
 	file, err := os.Open(filePath)

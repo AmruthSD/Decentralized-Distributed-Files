@@ -45,6 +45,7 @@ func xor_dist(node_id1 []byte, node_id2 []byte) []byte {
 	return new_byte
 }
 
+// closest nodes for the given node_id
 func (buckets *Buckets) Find_Nodes(node_id []byte) [][]byte {
 
 	nodes := make([][]byte, 0)

@@ -18,6 +18,7 @@ type node_address struct {
 	Address string
 }
 
+// calls find nodes and then sends via connection
 func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 
 	if peer_address == config.MetaData.ListeningAddress {
@@ -31,6 +32,7 @@ func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 	}
 	defer conn.Close()
 	buf := make([]byte, config.MetaData.ChunkSize)
+
 	conn.Write([]byte(fmt.Sprintf("SEND_NODE_ID %s %s\n", hex.EncodeToString(config.MetaData.NodeID), config.MetaData.ListeningAddress)))
 	n, _ := conn.Read(buf)
 	msg := string(buf[:n])
@@ -41,6 +43,7 @@ func (node *Node) get_nodes(key []byte, peer_address string) []node_address {
 		NodeIDtoNetConn[parts[0]] = parts[1]
 		MapMutex.Unlock()
 	}
+
 	conn.Write([]byte(fmt.Sprintf("CLOSEST %s\n", hex.EncodeToString(key))))
 	reader := bufio.NewReader(conn)
 	msg, err = reader.ReadString('\n')
@@ -94,7 +97,9 @@ func Comp(i []byte, j []byte) bool {
 	return true
 }
 
+// closest k node_id's in whole network
 func (node *Node) get_closest_nodes(key []byte) []node_address {
+
 	nodes := node.Bucket.Find_Nodes(key)
 
 	closest_list := list.New()
@@ -104,6 +109,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 	}
 	visited := make(map[string]bool, 0)
 
+	// search untill new nodes are not found
 	for {
 		dis := make([]byte, 32)
 
@@ -111,6 +117,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 		var mu_new_grp sync.Mutex
 		new_nodes := map[string]node_address{}
 		f := 0
+
 		for it := 0; it < config.MetaData.SearchAlpha; it++ {
 			var mi node_address
 			for i := 0; i < 32; i++ {
@@ -187,6 +194,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 		}
 	}
 
+	// get the closest and returns vec
 	vec := make([]node_address, 0)
 	for e := closest_list.Front(); e != nil; e = e.Next() {
 		k := e.Value.(node_address)
@@ -195,6 +203,7 @@ func (node *Node) get_closest_nodes(key []byte) []node_address {
 	return vec
 }
 
+// takes a node_id and then returns the k clossest node_id's
 func (node *Node) handel_closest(parts []string, conn net.Conn) string {
 	// CLOSEST hex_id
 	id, err := hex.DecodeString(parts[1])

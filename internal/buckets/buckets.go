@@ -21,6 +21,7 @@ func NewBuckets() *Buckets {
 	}
 }
 
+// inserting the node to the bucket
 func (buckets *Buckets) Insert_NodeID(node_id []byte) bool {
 	if len(node_id) != 32 {
 		return false

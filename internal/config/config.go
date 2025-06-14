@@ -25,6 +25,7 @@ type metadata struct {
 
 var MetaData metadata
 
+// initialize the config metedata
 func InitConfig() {
 	var restart string
 	var port_num int

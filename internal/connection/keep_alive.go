@@ -13,6 +13,7 @@ import (
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
+// send keep alive message every keep alive time to make sure that the chunks are not deleted
 func (node *Node) Handle_KeepAlive() {
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/hashed/"
 	for {
@@ -46,6 +47,7 @@ func (node *Node) Handle_KeepAlive() {
 	}
 }
 
+// if the chuck is not kept alive then just delete every 48 hrs
 func (node *Node) Handle_DeleteExpire() {
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/"
 	for {
@@ -74,6 +76,7 @@ func (node *Node) Handle_DeleteExpire() {
 	}
 }
 
+// open the json and then update the keep alive for that chunk
 func UpdateTimeStamp(cid string) {
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/"
 	file, _ := os.Open(dir + "storage.json")
@@ -100,6 +103,7 @@ func UpdateTimeStamp(cid string) {
 	outFile.Close()
 }
 
+// makes sure that the chunk is not deleted
 func (node *Node) handle_keepalive(parts []string, conn net.Conn) string {
 	UpdateTimeStamp(parts[1])
 	return "STOP"

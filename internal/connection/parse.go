@@ -2,7 +2,6 @@ package connection
 
 import (
 	"encoding/hex"
-	"fmt"
 	"net"
 	"strings"
 
@@ -28,18 +27,22 @@ func (node *Node) parse(msg string, conn net.Conn) string {
 	return "unknown"
 }
 
+// just sends a pong
 func (node *Node) handle_ping(parts []string, conn net.Conn) string {
 	return "PONG"
 }
 
+// if unknown tells to stop
 func (node *Node) handle_unknown(msg []string, conn net.Conn) string {
 	return "STOP"
 }
 
+// as done return stop
 func (node *Node) handle_done(msg []string, conn net.Conn) string {
 	return "STOP"
 }
 
+// inserts given node into its bucket
 func (node *Node) handle_node_id(parts []string, conn net.Conn) string {
 	if len(parts) == 3 {
 		node_id, _ := hex.DecodeString(parts[1])
@@ -48,7 +51,7 @@ func (node *Node) handle_node_id(parts []string, conn net.Conn) string {
 			MapMutex.Lock()
 			NodeIDtoNetConn[hex.EncodeToString(node_id)] = node_listening
 			MapMutex.Unlock()
-			fmt.Println("Inserting:", parts[1], parts[2])
+			// fmt.Println("Inserting:", parts[1], parts[2])
 		}
 	}
 	return hex.EncodeToString(config.MetaData.NodeID) + " " + config.MetaData.ListeningAddress

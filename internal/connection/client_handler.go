@@ -16,6 +16,7 @@ import (
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
+// reading and executing user commands
 func (node *Node) Handle_Client() {
 	fmt.Println("Client Started")
 	scanner := bufio.NewScanner(os.Stdin)
@@ -43,6 +44,7 @@ func (node *Node) Handle_Client() {
 	}
 }
 
+// actually makes chunks and sends them to the neighbours
 func (node *Node) UploadFile(filePath string) {
 	fmt.Println("Your file path:", filePath)
 	hashes, err := client.HashFile(filePath)
@@ -93,6 +95,7 @@ func (node *Node) UploadFile(filePath string) {
 	fmt.Println("File sent", filePath)
 }
 
+// makes connection and sends the chunk to store
 func (node *Node) send_chunk(buffer []byte, hash string, peer_address string) {
 	conn, err := net.Dial("tcp", peer_address)
 	if err != nil {
@@ -105,6 +108,7 @@ func (node *Node) send_chunk(buffer []byte, hash string, peer_address string) {
 	conn.Write(buffer)
 }
 
+// stores the file in directory
 func (node *Node) handel_store(parts []string, conn net.Conn) string {
 	hash := parts[1]
 
@@ -123,6 +127,7 @@ func (node *Node) handel_store(parts []string, conn net.Conn) string {
 	return "DONE"
 }
 
+// downloads the file after querying each chunk
 func (node *Node) DownLoadFile(fileName string) {
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/hashed/"
 
@@ -151,6 +156,7 @@ func (node *Node) DownLoadFile(fileName string) {
 			}
 
 			conn.Write([]byte(fmt.Sprintf("DOYOUHAVE %s DOWNLOAD\n", hashVal)))
+			fmt.Println("Sent do you have download")
 			readbuff := make([]byte, config.MetaData.ChunkSize)
 			n, _ := conn.Read(readbuff)
 			if string(readbuff[:n]) == "YES\n" {
@@ -171,14 +177,17 @@ func (node *Node) DownLoadFile(fileName string) {
 	fmt.Println("DOWNLOAD COMPLETE")
 }
 
+/*
+if its a download type then we should actually send it else chunk
+if check just says yes or no
+*/
 func (node *Node) handle_doyouhave(parts []string, conn net.Conn) string {
 	id := parts[1]
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/storage/"
 	kind := parts[2]
 	if kind == "DOWNLOAD" {
-
 		buffer := make([]byte, config.MetaData.ChunkSize)
-		file, err := os.Open(dir + id)
+		file, err := os.Open(dir + id + ".hash")
 		if err != nil {
 			conn.Write([]byte("NO\n"))
 			return "STOP"
@@ -203,6 +212,7 @@ func (node *Node) handle_doyouhave(parts []string, conn net.Conn) string {
 	return "STOP"
 }
 
+// deletes file from the directory i.e the hashes
 func (node *Node) DeleteFile(fileName string) {
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/hashed/"
 	os.Remove(dir + fileName + ".hash")

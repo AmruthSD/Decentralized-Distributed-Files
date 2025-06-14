@@ -11,6 +11,9 @@ import (
 	"github.com/AmruthSD/Decentralized-Distributed-Files/internal/config"
 )
 
+// Infinite loop which reuns every time out persist hours to -
+// check if its a part of the k closest
+// also makes sure that the chunck is with the closest nodes
 func (node *Node) Handle_persist() {
 	dir := "./files/" + strconv.Itoa(int(config.MetaData.Port)) + "/storage/"
 	for {
